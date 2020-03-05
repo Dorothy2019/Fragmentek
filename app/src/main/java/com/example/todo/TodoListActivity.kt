@@ -2,20 +2,23 @@ package com.example.todo
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
+import com.example.todo.adapter.SimpleItemRecyclerViewAdapter
 
-import com.example.todo.dummy.DummyContent
 import com.example.todo.model.Todo
 import kotlinx.android.synthetic.main.activity_todo_list.*
+import kotlinx.android.synthetic.main.row_todo.view.*
 import kotlinx.android.synthetic.main.todo_list_content.view.*
 import kotlinx.android.synthetic.main.todo_list.*
+
 
 /**
  * An activity representing a list of Pings. This activity
@@ -25,13 +28,14 @@ import kotlinx.android.synthetic.main.todo_list.*
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class TodoListActivity : AppCompatActivity() {
+class TodoListActivity : AppCompatActivity(),TodoCreateFragment.TodoCreatedListener, SimpleItemRecyclerViewAdapter.TodoItemClickListener {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private var twoPane: Boolean = false
+    private lateinit var simpleItemRecyclerViewAdapter: com.example.todo.adapter.SimpleItemRecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,85 +57,66 @@ class TodoListActivity : AppCompatActivity() {
             twoPane = true
         }
 
-        setupRecyclerView(todo_list)
+        setupRecyclerView()
     }
 
-    private fun setupRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, twoPane)
-    }
-
-    class SimpleItemRecyclerViewAdapter : RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
-
-        private val todoList = mutableListOf<Todo>()
-
-        var itemClickListener: TodoItemClickListener? = null
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.row_todo, parent, false)
-            return ViewHolder(view)
+    override fun onItemClick(todo: Todo) {
+        if (twoPane) {
+            val fragment = TodoDetailFragment.newInstance(todo.description)
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.todo_detail_container, fragment)
+                .commit()
+        } else {
+            val intent = Intent(this, TodoDetailActivity::class.java)
+            intent.putExtra(TodoDetailActivity.KEY_DESC, todo.description)
+            startActivity(intent)
         }
+    }
 
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val todo = todoList[position]
 
-            holder.todo = todo
+    private fun setupRecyclerView() {
+        val demoData = mutableListOf(
+            Todo("title1", Todo.Priority.LOW, "2011. 09. 26.", "description1"),
+            Todo("title2", Todo.Priority.MEDIUM, "2011. 09. 27.", "description2"),
+            Todo("title3", Todo.Priority.HIGH, "2011. 09. 28.", "description3")
+        )
+        simpleItemRecyclerViewAdapter = SimpleItemRecyclerViewAdapter()
+        simpleItemRecyclerViewAdapter.itemClickListener = this
+        simpleItemRecyclerViewAdapter.addAll(demoData)
+        todo_list.adapter = simpleItemRecyclerViewAdapter
+    }
 
-            holder.tvTitle.text = todo.title
-            holder.tvDueDate.text = todo.dueDate
-
-            val resource = when (todo.priority) {
-                Todo.Priority.LOW -> R.drawable.ic_low
-                Todo.Priority.MEDIUM -> R.drawable.ic_medium
-                Todo.Priority.HIGH -> R.drawable.ic_high
+    override fun onItemLongClick(position: Int, view: View): Boolean {
+        val popup = PopupMenu(this, view)
+        popup.inflate(R.menu.menu_todo)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.delete -> simpleItemRecyclerViewAdapter.deleteRow(position)
             }
-            holder.ivPriority.setImageResource(resource)
+            false
         }
-
-        fun addItem(todo: Todo) {
-            val size = todoList.size
-            todoList.add(todo)
-            notifyItemInserted(size)
-        }
-
-        fun addAll(todos: List<Todo>) {
-            val size = todoList.size
-            todoList += todos
-            notifyItemRangeInserted(size, todos.size)
-        }
-
-        fun deleteRow(position: Int) {
-            todoList.removeAt(position)
-            notifyItemRemoved(position)
-        }
-
-        override fun getItemCount() = todoList.size
-
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val tvDueDate: TextView = itemView.tvDueDate
-            val tvTitle: TextView = itemView.tvTitle
-            val ivPriority: ImageView = itemView.ivPriority
-
-            var todo: Todo? = null
-
-            init {
-                itemView.setOnClickListener {
-                    todo?.let { todo -> itemClickListener?.onItemClick(todo) }
-                }
-
-                itemView.setOnLongClickListener { view ->
-                    itemClickListener?.onItemLongClick(adapterPosition, view)
-                    true
-                }
-            }
-        }
-
-        interface TodoItemClickListener {
-            fun onItemClick(todo: Todo)
-            fun onItemLongClick(position: Int, view: View): Boolean
-        }
-
+        popup.show()
+        return false
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_list, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == R.id.itemCreateTodo) {
+            val todoCreateFragment = TodoCreateFragment()
+            todoCreateFragment.show(supportFragmentManager, "TAG")
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onTodoCreated(todo: Todo) {
+        simpleItemRecyclerViewAdapter.addItem(todo)
+    }
+
 
 
 }

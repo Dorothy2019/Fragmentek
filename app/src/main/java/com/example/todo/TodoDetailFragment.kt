@@ -5,9 +5,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.todo.dummy.DummyContent
 import com.example.todo.model.Todo
 import kotlinx.android.synthetic.main.activity_todo_detail.*
+import kotlinx.android.synthetic.main.todo_detail.*
 import kotlinx.android.synthetic.main.todo_detail.view.*
 
 /**
@@ -54,7 +54,7 @@ class TodoDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tvTodoDetail.text = selectedTodo?.description
+        todo_detail.text = selectedTodo?.description
     }
 
 }

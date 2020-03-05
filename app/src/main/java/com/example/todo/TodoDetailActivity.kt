@@ -5,7 +5,10 @@ import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.MenuItem
+import com.example.todo.adapter.SimpleItemRecyclerViewAdapter
+import com.example.todo.model.Todo
 import kotlinx.android.synthetic.main.activity_todo_detail.*
+import kotlinx.android.synthetic.main.todo_list.*
 
 /**
  * An activity representing a single Todo detail screen. This
@@ -13,14 +16,15 @@ import kotlinx.android.synthetic.main.activity_todo_detail.*
  * item details are presented side-by-side with a list of items
  * in a [TodoListActivity].
  */
-class TodoDetailActivity : AppCompatActivity() {
+class TodoDetailActivity : AppCompatActivity(){
     companion object {
         const val KEY_DESC = "KEY_DESC"
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val fragment = TodoDetailFragment.newInstance(intent.getStringExtra(KEY_DESC))
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_todo_detail)
         setSupportActionBar(detail_toolbar)
@@ -43,16 +47,9 @@ class TodoDetailActivity : AppCompatActivity() {
         // http://developer.android.com/guide/components/fragments.html
         //
         if (savedInstanceState == null) {
+            val fragment = TodoDetailFragment.newInstance(intent.getStringExtra(KEY_DESC))
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
-            val fragment = TodoDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putString(
-                        TodoDetailFragment.ARG_ITEM_ID,
-                        intent.getStringExtra(TodoDetailFragment.ARG_ITEM_ID)
-                    )
-                }
-            }
 
             supportFragmentManager.beginTransaction()
                 .add(R.id.todo_detail_container, fragment)
