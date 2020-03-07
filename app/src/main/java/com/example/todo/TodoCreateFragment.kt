@@ -11,7 +11,7 @@ import com.example.todo.model.Todo
 import kotlinx.android.synthetic.main.fragment_create.*
 import kotlinx.android.synthetic.main.todo_detail.*
 
-class TodoCreateFragment : DialogFragment() {
+class TodoCreateFragment : DialogFragment(), DatePickerDialogFragment.DateListener {
 
     private lateinit var listener: TodoCreatedListener
 
@@ -43,7 +43,6 @@ class TodoCreateFragment : DialogFragment() {
                 android.R.layout.simple_spinner_item,
                 listOf("Low", "Medium", "High")
         )
-        todo_detail.text = "  -  "
 
         btnCreateTodo.setOnClickListener {
             val selectedPriority = when (spnrTodoPriority.selectedItemPosition) {
@@ -65,11 +64,18 @@ class TodoCreateFragment : DialogFragment() {
         btnCancelCreateTodo.setOnClickListener {
             dismiss()
         }
+        tvTodoDueDate.setOnClickListener { showDatePickerDialog() }
 
     }
 
     private fun showDatePickerDialog() {
-        //TODO 
+        val datePicker = DatePickerDialogFragment()
+        datePicker.setTargetFragment(this, 0)
+        datePicker.show(fragmentManager, DatePickerDialogFragment.TAG)
+    }
+
+    override fun onDateSelected(date: String) {
+        tvTodoDueDate.text = date
     }
 
     interface TodoCreatedListener {
